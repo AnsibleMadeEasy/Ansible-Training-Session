@@ -3,7 +3,7 @@
 
  - name: |
      Ansible User Training Environment: Install Docker 
-   hosts: localhost
+   hosts: all
    gather_facts: true
    tags: docker
 
@@ -155,7 +155,7 @@
 
  - name: | 
      Ansible User Training Environment: Installing Podman
-   hosts: localhost
+   hosts: all
    tags: podman
 
    tasks:
@@ -223,7 +223,7 @@
 
  - name: |
      Ansible User Training Environment: Create Environment with Docker
-   hosts: localhost
+   hosts: all
    tags: docker
 
    vars_files:
@@ -318,7 +318,7 @@
 
  - name: |
      Ansible User Training Environment: Create Environment with Podman
-   hosts: localhost
+   hosts: all
    tags: podman
 
    vars_files:
@@ -388,7 +388,7 @@
 
 
  - name: Shutdown Ansible User Training Environment
-   hosts: localhost
+   hosts: all
    gather_facts: true
    tags:
      - never  
