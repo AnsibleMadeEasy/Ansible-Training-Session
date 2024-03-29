@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  ansible_controller:
+    container_name: ansible-controller
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: centos
+    ports:
+      - "2222:22"

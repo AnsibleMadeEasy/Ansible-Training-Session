@@ -1,0 +1,23 @@
+## {{ ansible_managed }}
+#===================#
+# NCSU sudoers file #
+#===================#
+
+Defaults	mailto=sudotrack@oit.ncsu.edu
+Defaults:	oradba !requiretty
+
+Cmnd_Alias	LEVEL1=/bin/su - oradba, /bin/su oradba
+
+# User aliases
+User_Alias      DBA=oradba,%dba
+User_Alias      DBAROOT=%dbaroot
+User_Alias	SYSP=%csi
+User_Alias	STOR=%storage
+User_Alias	SVC=oit.ansible.dba.srv
+
+# User privileges
+DBA		ALL=PASSWD:LEVEL1
+DBAROOT		ALL=PASSWD:ALL
+SYSP		ALL=PASSWD:ALL
+STOR		ALL=PASSWD:ALL
+SVC		ALL=PASSWD:ALL

@@ -1,0 +1,10 @@
+---
+# handlers file for autofs
+- name: "restart autofs"
+  ansible.builtin.systemd:
+    name: autofs
+    state: restarted
+  become: true
+  tags:
+    - always
+    - no_molecule

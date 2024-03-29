@@ -1,0 +1,10 @@
+---
+# tasks
+- name: Modify routing
+  ansible.builtin.include_tasks: routes.yml
+  when:
+    - ansible_distribution_major_version == "7"
+  tags:
+    - molecule
+    - always
+    - config

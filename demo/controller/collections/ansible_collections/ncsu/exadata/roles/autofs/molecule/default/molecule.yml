@@ -1,0 +1,35 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: default
+    image: geerlingguy/docker-ubi8-ansible:latest
+    pre_build_image: true
+    docker_host: "${DOCKER_HOST:-unix://var/run/docker.sock}"
+    privileged: true
+    command: ${MOLECULE_DOCKER_COMMAND:-"/usr/sbin/init"}
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    groups:
+      - molecule
+      - python3
+provisioner:
+  name: ansible
+  # env:
+  #   skip_handlers: true
+  #   ANSIBLE_VERBOSITY: 3
+  options:
+    # vault-password-file: .vault_pass
+    skip-tags: notify, no_molecule
+    tags: molecule
+  # inventory:
+  #   group_vars:
+  #     molecule:
+  #       run_is_molecule: true
+verifier:
+  name: ansible
+lint: |
+  # set -e
+  # ansible-lint

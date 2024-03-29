@@ -1,0 +1,28 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: Install python3
+      package:
+        name: python3
+
+    - name: Install sudo
+      package:
+        name: sudo
+      changed_when: false
+
+    - name: Copy in SystemD systemctl replacement
+      copy:
+        src: "../_shared/systemd/systemctl3.py"
+        dest: "/usr/bin/systemctl"
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Copy in SystemD journalctl replacement
+      copy:
+        src: "../_shared/systemd/journalctl3.py"
+        dest: "/usr/bin/journalctl"
+        owner: root
+        group: root
+        mode: '0755'

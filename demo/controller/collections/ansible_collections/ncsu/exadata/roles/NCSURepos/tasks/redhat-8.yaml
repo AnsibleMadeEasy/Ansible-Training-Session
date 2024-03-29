@@ -1,0 +1,23 @@
+---
+## Redhat 8
+
+# don't think RH 8 needs custom repos
+# but the below stanzas will do if
+# needed. Just replace the 'never' tag
+# with 'always' and 'molecule'
+
+  - name: Create Redhat 8 repo file
+    ansible.builtin.yum_repository:
+      name: "{{ item.name }}"
+      description: "{{ item.desc }}"
+      file: oracle-linux-ol8
+      baseurl: "{{ item.url }}"
+      gpgcheck: yes
+      gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle"
+      enabled: "{{ item.enabled }}"
+    loop_control:
+      label: "{{ item.label }}"
+    loop:
+      - { label: "Create Oracle Linux BaseOS latest entry", name: "ol8_baseos_latest", desc: "Oracle Linux 8 BaseOS Latest ($basearch)", url: "https://yum$ociregion.$ocidomain/repo/OracleLinux/OL8/baseos/latest/$basearch/", enabled: "yes"}
+    tags:
+        - never

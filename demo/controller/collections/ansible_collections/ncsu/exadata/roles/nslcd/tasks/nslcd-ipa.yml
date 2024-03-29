@@ -1,0 +1,57 @@
+---
+# setup IPA configs
+
+- name: Copy nslcd-ipa configs to host...
+  ansible.builtin.template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    owner: '{{ item.owner }}'
+    group: '{{ item.grp }}'
+    mode: '{{ item.mode }}'
+    force: '{{ item.force }}'
+    backup: true
+  with_items:
+    - { src: 'templates/nslcd.conf-ipa.j2', dest: '/etc/nslcd.conf', owner: 'root', grp: 'root', mode: '0640', force: 'yes' }
+    - { src: 'templates/nsswitch-ipa.conf.j2', dest: '/etc/nsswitch.conf', owner: 'root', grp: 'root', mode: '0644', force: 'yes' }
+    - { src: 'templates/system-auth-ipa.j2', dest: '/etc/pam.d/system-auth-ipa', owner: 'root', grp: 'root', mode: '0644', force: 'yes' }
+    - { src: 'templates/password-auth-ipa.j2', dest: '/etc/pam.d/password-auth-ipa', owner: 'root', grp: 'root', mode: '0644', force: 'yes' }
+  tags:
+    - always
+    - molecule
+    - configuration
+  when: enable_ipa
+  become: true
+  notify:
+    - restart nslcd
+    - enable nslcd
+    - restart nscd
+
+- name: Change system-auth link
+  ansible.builtin.file:
+    src: /etc/pam.d/system-auth-ipa
+    dest: /etc/pam.d/system-auth
+    owner: root
+    group: root
+    state: link
+    force: true
+    # backup: true
+  when: enable_ipa
+  become: true
+  tags:
+    - always
+    - molecule
+
+- name: Change password-auth link
+  ansible.builtin.file:
+    src: /etc/pam.d/password-auth-ipa
+    dest: /etc/pam.d/password-auth
+    owner: root
+    group: root
+    state: link
+    force: true
+    # backup: true
+  when: enable_ipa
+  become: true
+  tags:
+    - always
+    - molecule

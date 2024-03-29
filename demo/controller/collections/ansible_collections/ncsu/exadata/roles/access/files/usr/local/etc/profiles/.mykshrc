@@ -1,0 +1,20 @@
+#
+# Alias definitions
+#
+alias cls='clear'
+alias ls='/bin/ls -aF'
+alias psgrep='ps -ef | grep -v grep | grep'
+
+MACHINE=`hostname | cut -f1 -d.`
+
+set -o vi
+
+#
+# Prompt definiton
+#
+export PS1='<$MACHINE:$USER:$PWD>$ '
+
+#
+# Path search current dir
+#
+export PATH=${PATH}:./

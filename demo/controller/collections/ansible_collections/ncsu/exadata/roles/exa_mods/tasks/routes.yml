@@ -1,0 +1,23 @@
+---
+# tasks
+- name: Calculate gateway IP
+  set_fact:
+    ora_asg_gw: "{{ ansible_default_ipv4['gateway'] }}"
+  when:
+    - (not ora_asg_gw is defined) or (ora_asg_gw | length == 0)
+  tags:
+    - molecule
+    - always
+
+- name: Copy network routing config
+  ansible.builtin.template:
+    src: templates/route-NIC.j2
+    dest: /etc/sysconfig/network-scripts/route-{{ ora_asg_device }}
+    owner: root
+    group: root
+    mode: '0640'
+  become: true
+  tags:
+    - molecule
+    - always
+    - config

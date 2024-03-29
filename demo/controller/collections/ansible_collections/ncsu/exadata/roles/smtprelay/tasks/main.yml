@@ -1,0 +1,23 @@
+---
+# tasks file for smtprelay
+## mail playbook/tasks
+
+## Enable oracle-linux-ol7 repo
+- name: Setup sendmail under Oracle 7x
+  ansible.builtin.include_tasks: oracle-linux-ol7.yml
+  when:
+    - ansible_distribution_major_version == "7"
+    - ansible_distribution == "OracleLinux"
+  tags:
+    - always
+    - molecule
+
+## Enable oracle-linux-ol8 repo
+- name: Setup sendmail under Oracle 8x
+  ansible.builtin.include_tasks: oracle-linux-ol8.yml
+  when:
+    - ansible_distribution_major_version == "8"
+    - ansible_distribution == "OracleLinux"
+  tags:
+    - always
+    - molecule

@@ -1,0 +1,42 @@
+- name: Install sendmail packages for OL 8
+  ansible.builtin.package:
+    name:
+      - sendmail
+      - mailx
+      - sendmail-cf
+      - less
+    state: present
+    enablerepo: ol8_latest
+  become: true
+  tags:
+    - always
+    - molecule
+
+- name: "Enable sendmail with systemd"
+  ansible.builtin.systemd:
+    name: sendmail
+    enabled: true
+  become: true
+  tags:
+    - always
+    - molecule
+
+## Copy our configs
+- name: Copy our mail configs to host...
+  ansible.builtin.template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    owner: '{{ item.owner }}'
+    group: '{{ item.grp }}'
+    mode: '{{ item.mode }}'
+    force: '{{ item.force }}'
+    backup: true
+  with_items:
+    - { src: 'templates/submit.mc.j2', dest: '/etc/mail/submit.mc', owner: 'root', grp: 'root', mode: '0644', force: 'yes' }
+    - { src: 'templates/sendmail.mc.j2', dest: '/etc/mail/sendmail.mc', owner: 'root', grp: 'root', mode: '0644', force: 'yes' }
+  tags:
+    - configuration
+    - always
+    - molecule
+  become: true
+  notify: restart sendmail

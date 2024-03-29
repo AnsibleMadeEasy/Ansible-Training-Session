@@ -1,0 +1,18 @@
+---
+## OracleLinux 7
+- name: Setup multiple repositories into oracle-linux-ol7 repo file
+  ansible.builtin.yum_repository:
+    name: "{{ item.name }}"
+    enabled: "{{ item.enabled }}"
+    description: "{{ item.desc }}"
+    file: oracle-linux-ol7
+    baseurl: "{{ item.baseurl }}"
+    gpgkey: "{{ item.gpgkey }}"
+    gpgcheck: "{{ item.gpgcheck }}"
+    async: "{{ item.async }}"
+    proxy: "https://proxy.oit.ncsu.edu:3128"
+  with_items:
+    - {name: "ol7_latest", enabled: "false", desc: "Oracle Linux $releasever Latest ($basearch)", baseurl: "https://yum.oracle.com/repo/OracleLinux/OL7/latest/$basearch/", gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle", gpgcheck: "true", async: "true"}
+    - {name: "ol7_u9_base", enabled: "false", desc: "Oracle Linux $releasever Update 9 installation media copy ($basearch)", baseurl: "https://yum.oracle.com/repo/OracleLinux/OL7/9/base/$basearch/", gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle", gpgcheck: "true", async: "true"}
+    - {name: "ol7_optional_latest", enabled: "false", desc: "Oracle Linux $releasever Optional Latest ($basearch)", baseurl: "https://yum.oracle.com/repo/OracleLinux/OL7/optional/latest/$basearch/", gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle", gpgcheck: "true", async: "true"}
+    - {name: "ol7_addons", enabled: "false", desc: "Oracle Linux $releasever Add ons ($basearch)", baseurl: "https://yum.oracle.com/repo/OracleLinux/OL7/addons/$basearch/", gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle", gpgcheck: "true", async: "true"}

@@ -1,0 +1,2 @@
+## nslcd playbook/vars
+cert_path: "/etc/openldap/cacerts"

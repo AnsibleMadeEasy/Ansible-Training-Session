@@ -1,0 +1,63 @@
+
+FROM {{ container.base_image }}:{{ container.tag }}
+LABEL maintainer="David Lewellyn <dlewell@ncsu.edu>"
+LABEL build_date="{{ now().strftime('%Y-%m-%d') }}"
+{% if container.base_image == 'ubuntu' %}
+RUN apt update && \
+    apt install -y openssh-server \
+    python3 \
+    python3-pip \
+    git
+
+RUN useradd -rm -d /home/ansible -s /bin/bash -g root -G sudo -u 1000 ansible
+{% else %}
+{% if container.base_image == 'centos' %}
+RUN cd /etc/yum.repos.d/
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+RUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+{% endif %}
+RUN dnf -y update && \
+    dnf -y install epel-release && \
+    dnf makecache && \
+    dnf -y install python3 \
+    python3-pip \
+    git \
+    openssh-server \
+    sudo \
+    vim \
+    openssl \
+    certmonger
+
+RUN dnf -y reinstall systemd
+
+RUN cd /etc/systemd/system/sysinit.target.wants/ ; \
+    for i in * ; do [ $i = systemd-tmpfiles-setup.service ] || rm -f $i ; done ; \
+    rm -f /lib/systemd/system/multi-user.target.wants/* ; \
+    rm -f /etc/systemd/system/*.wants/* ; \
+    rm -f /lib/systemd/system/local-fs.target.wants/* ; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev* ; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl* ; \
+    rm -f /lib/systemd/system/basic.target.wants/* ; \
+    rm -f /lib/systemd/system/anaconda.target.wants/*
+
+VOLUME ["/sys/fs/cgroup"]
+
+{% if container.name == 'ansible-controller' %}
+RUN pip3 install --upgrade pip && \
+    pip3 install ansible && \
+    pip3 cache purge
+{% endif -%}
+
+RUN useradd -rm -d /home/ansible -s /bin/bash -g root -G wheel -u 1000 ansible
+{% endif -%}
+
+RUN echo '{{ container.hostname }}' > /etc/hostname
+RUN echo 'ansible:{{ CONTAINER_SSH_PASSWORD }}' | chpasswd
+RUN echo 'root:{{ CONTAINER_ROOT }}' | chpasswd
+RUN ssh-keygen -A
+RUN mkdir /var/run/sshd
+EXPOSE 22
+{% if container.base_image == 'centos' %}
+RUN rm -f /run/nologin
+{% endif %}
+CMD ["/usr/sbin/sshd", "-D"]

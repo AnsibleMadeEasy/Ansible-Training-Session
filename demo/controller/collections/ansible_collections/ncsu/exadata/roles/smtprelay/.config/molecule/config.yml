@@ -1,0 +1,9 @@
+# molecule config.yml
+# copy this to ~/.config/molecule for account level settings.
+
+## Uncomment to disable rolename galaxy reqs
+# role_name_check: 1
+
+## We can also contain env variables
+# https://molecule.readthedocs.io/en/latest/configuration.html#id2
+# VERIFIER_NAME=foo

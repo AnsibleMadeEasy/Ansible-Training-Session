@@ -1,0 +1,9 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: Copy in SystemD systemctl replacement
+      copy: src="files/docker/systemctl3.py" dest="/usr/bin/systemctl"
+
+    - name: Copy in SystemD journalctl replacement
+      copy: src="files/docker/journalctl3.py" dest="/usr/bin/journalctl"

@@ -1,0 +1,9 @@
+--- 
+
+ - name: Installing and Configuring Autofs
+   ansible.builtin.include_tasks: install.yml
+   when: (state|default('present') == 'present')
+
+ - name: Uninstall Autofs
+   ansible.builtin.include_tasks: install.yml
+   when: (state|default('present') == 'absent')

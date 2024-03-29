@@ -1,0 +1,12 @@
+---
+- name: Comment out tls cert
+  ansible.builtin.lineinfile:
+    path: /etc/nslcd.conf
+    regexp: '^tls_cacertfile'
+    line: "#tls_cacertfile"
+
+- name: Comment out tls cert
+  ansible.builtin.lineinfile:
+    path: /etc/nslcd.conf
+    regexp: '^nss_initgroups_ignoreusers'
+    line: "#nss_initgroups_ignoreusers"

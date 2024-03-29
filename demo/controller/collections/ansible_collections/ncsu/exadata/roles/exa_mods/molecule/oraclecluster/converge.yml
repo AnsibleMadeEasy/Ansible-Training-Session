@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include exa_mods role"
+      include_role:
+        name: "exa_mods"
