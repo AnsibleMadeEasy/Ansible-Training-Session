@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include smtprelay"
+      include_role:
+        name: "smtprelay"

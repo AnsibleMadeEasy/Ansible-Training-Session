@@ -1,0 +1,31 @@
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: /etc/openldap/cacerts
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  tags:
+    - always
+    - molecule
+
+- name: Access=> Copy our certificates to host...
+  copy:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    owner: '{{ item.owner }}'
+    group: '{{ item.grp }}'
+    mode: '{{ item.mode }}'
+    force: '{{ item.force }}'
+    backup: yes
+  with_items:
+    # /etc/mail requires sendmail installed
+    - { src: 'files/ca.crt.{{ ipa_env }}.j2', dest: '{{ cert_path }}/ca.crt', owner: 'root', grp: 'root', mode: '0644', force: 'yes' }
+    - { src: 'files/InCommonCA_NCSU_2016_1.pem.j2', dest: '{{ cert_path }}/InCommonCA_NCSU_2016_1.pem', owner: 'root', grp: 'root', mode: '0644', force: 'yes' }
+    - { src: 'files/InCommonCA_NCSU_2016_2.pem.j2', dest: '{{ cert_path }}/InCommonCA_NCSU_2016_2.pem', owner: 'root', grp: 'root', mode: '0644', force: 'yes' }
+    - { src: 'files/InCommonCA_NCSU_2016_3.pem.j2', dest: '{{ cert_path }}/InCommonCA_NCSU_2016_3.pem', owner: 'root', grp: 'root', mode: '0644', force: 'yes' }
+  tags:
+    - always
+    - molecule
+    - configuration
+  become: true

@@ -1,0 +1,17 @@
+---
+demo:
+  hosts:
+    ansible-demo:
+      ansible_host: 172.18.0.3
+    demo-node-01:
+      ansible_host: 172.18.0.4
+    demo-node-02:
+      ansible_host: 172.18.0.5
+    demo-node-03:
+      ansible_host: 172.18.0.6
+    demo-node-04:
+      ansible_host: 172.18.0.7
+    demo-node-05:
+      ansible_host: 172.18.0.8
+    demo-node-06:
+      ansible_host: 172.18.0.9

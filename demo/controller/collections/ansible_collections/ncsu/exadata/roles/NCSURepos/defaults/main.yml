@@ -1,0 +1,3 @@
+---
+# default defaults
+write_date: "{{ lookup('pipe', 'date +%Y-%m-%d@%H:%M') }}"

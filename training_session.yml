@@ -1,0 +1,450 @@
+
+---
+
+ - name: |
+     Ansible User Training Environment: Install Docker 
+   hosts: all
+   gather_facts: true
+   tags: docker
+
+   tasks:
+
+     - name: Check if Docker is install
+       ansible.builtin.command: "docker --version"
+       register: docker_installed
+       ignore_errors: yes
+       changed_when: docker_installed.rc != 0
+
+     - name: Running Docker installer for {{ ansible_distribution }}
+       ansible.builtin.fail:
+         msg: |
+               Docker is not supported for RedHat Enterprise Linux
+               On this system architecture.
+               Supported: s390x
+               System: {{ ansible_architecture }} 
+               Run the playbook again using the tag 'podman' to use 
+               Podman as the container manager.
+       when: 
+         - docker_installed.rc != 0
+         - ansible_distribution == 'RedHat'
+         - ansible_architecture != 's390x'
+
+     - name: Installing Docker for {{ ansible_distribution }}
+       when: 
+         - docker_installed.rc != 0
+         - ansible_distribution == 'Ubuntu'
+       block: 
+         - name: Adding Docker GPG Key
+           ansible.builtin.apt_key:
+             url: https://download.docker.com/linux/ubuntu/gpg
+             state: present
+           become: true
+         
+         - name: Adding Docker Repository
+           ansible.builtin.apt_repository:
+             repo: "deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+             state: present
+
+         - name: Update and install Docker
+           ansible.builtin.apt:
+             name: docker-ce
+             state: lastest
+             update_cache: true
+           become: true
+
+         - name: Install Docker module for Python
+           ansible.builtin.pip:
+             name: docker
+
+     - name: Installing Docker for {{ ansible_distribution }}
+       when: 
+         - docker_installed.rc != 0
+         - (ansible_distribution == 'CentOS') or (ansible_distribution == 'Rocky') or (ansible_distribution == 'AlmaLinux') or (ansible_distribution == 'Fedora')
+       block:
+         
+         - name: Install required packages with YUM package manager
+           ansible.builtin.yum:
+             name: yum-utils
+             state: present
+           when: ansible_distribution_major_version < 8 
+           become: true
+
+         - name: Install required packages with DNF package manager
+           ansible.builtin.dnf:
+             name: yum-utils
+             state: present
+           when: ansible_distribution_major_version >= 8 
+           become: true
+
+         - name: Installing Docker repo file 
+           ansible.builtin.yum_repository:
+             name: docker-ce
+             description: Docker manager repository
+             baseurl: https://download.docker.com/linux/rhel/docker-ce.repo
+           become: true
+
+         - name: Install required packages with YUM package manager
+           ansible.builtin.yum:
+             name: 
+               - docker-ce
+               - docker-ce-cli 
+               - containerd.io 
+               - docker-buildx-plugin 
+               - docker-compose-plugin
+             state: present
+           when: ansible_distribution_major_version < 8 
+           become: true
+
+         - name: Install required packages with DNF package manager
+           ansible.builtin.yum:
+             name: 
+               - docker-ce
+               - docker-ce-cli 
+               - containerd.io 
+               - docker-buildx-plugin 
+               - docker-compose-plugin
+             state: present
+           when: ansible_distribution_major_version >= 8 
+           become: true 
+           notify: Start Docker 
+
+     - name: Verify Homebrew is installed
+       when: ansible_distribution == 'MacOSX'
+       block:
+         
+         - name: Verify if homebrew is installed
+           ansible.builtin.command: "brew --version"
+           register: homebrew_installed
+           ignore_errors: true
+           changed_when: homebrew_installed.rc != 0 
+
+
+         - ansible.builtin.fail:
+             msg: |
+               Homebrew is currently not installed
+               This is the currently supported install method for MacOSX
+               To install Homebrew run the follwoing command in a terminal:
+
+               /bin/bash -c $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)
+
+               Run this playbook again after installing.
+           when: homebrew_installed.rc != 0
+
+     - name: Installing Docker for {{ ansible_distribution }}
+       when: 
+         - docker_installed.rc != 0
+         - ansible_distribution == 'MacOSX'
+       block:
+
+         - name: Installing Docker with Homebrew
+           community.general.homebrew:
+             name: docker
+             state: latest
+             update_homebrew: true
+           notify: Start Docker Desktop
+          
+   handlers:
+
+     - name: Start Docker
+       ansible.builtin.service:
+         name: docker
+         state: started
+    
+     - name: Start Docker Desktop
+       ansible.builtin.command: "open -a Docker"
+
+ - name: | 
+     Ansible User Training Environment: Installing Podman
+   hosts: all
+   tags: podman
+
+   tasks:
+
+     - name: Check if Podman is install
+       ansible.builtin.command: "podman --version"
+       register: podman_installed
+       ignore_errors: yes
+       changed_when: podman_installed.rc != 0
+
+     - name: Installing Podman for Red Hat systems
+       when:
+         - podman_installed.rc != 0 
+         - ansible_os_family == 'RedHat'
+       block:
+         
+         - name: Installing Podman for {{ ansible_os_family }} systems
+           ansible.builtin.dnf:
+             name: podman
+             state: latest
+             update_cache: true
+           notify: Start Podman
+
+     - name: Installing Podman for Debian systems
+       when:
+         - podman_installed.rc != 0
+         - ansible_os_family == 'Debian'
+       block:
+
+         - name: Installing Podman for {{ ansible_os_family }} systems
+           ansible.builtin.apt:
+             name: podman
+             state: latest
+             update_cache: true 
+           notify: Start Podman
+
+     - name: Installing Podman for MacOSX systems 
+       when: 
+         - podman_installed.rc != 0
+         - ansible_distribution == 'MacOSX'
+       block: 
+
+         - name: Install Notification
+           ansible.builtin.debug:
+             msg: |
+               Since Podman is dependant on a Linux kernel to run and this is a 
+               MacOSX system the brew cask 'podman-desktop' is required as well.
+
+         - name: Installing Podman with Homebrew
+           community.general.homebrew:
+             name: 
+               - podman
+               - podman-desktop
+             state: latest 
+             update_homebrew: true
+           notify: Start Podman
+
+   handlers: 
+
+     - name: Start Podman
+       block:
+
+         - ansible.builtin.command: "podman machine init"
+         - ansible.builtin.command: "podman machine start"
+
+ - name: |
+     Ansible User Training Environment: Create Environment with Docker
+   hosts: all
+   tags: docker
+
+   vars_files:
+     - vars/containers.yml
+
+   tasks:
+     - name: Checking container manager installation
+       ansible.builtin.command: docker --version
+       register: docker_installed
+       ignore_errors: true
+       changed_when: docker_installed.rc != 0
+       failed_when: docker_installed.rc != 0
+
+     - name: Starting Docker Desktop for MacOSX
+       ansible.builtin.command: open -a docker
+       register: start_docker
+       changed_when: start_docker.rc != 0
+       failed_when: start_docker.rc != 0
+       when: 
+         - ansible_distribution == 'MacOSX'
+         - CONTAINER_MANAGER | default('docker') == 'docker'
+
+     - name: Building cluster using Docker
+       when: CONTAINER_MANAGER | default('docker')  ==  "docker"
+       block:
+
+         - name: Running Docker build tasks
+           ansible.builtin.include_tasks: setup/tasks/build_docker.yml
+           loop: "{{ CONTAINERS }}"
+           loop_control:
+             loop_var: container
+             label: |
+               Building Docker Image: {{ container.name }}
+               Image: {{ container.base_image }}:{{ container.tag }}
+               Build: {{ container.build_image }}
+
+         - name: Create the Docker Network
+           community.docker.docker_network:
+             name: "{{ CONTAINER_NETWORK }}"
+             ipam_config: 
+               - subnet: "{{ CONTAINER_SUBNET }}"
+                 gateway: "{{ CONTAINER_GATEWAY }}"
+                 iprange: "{{ CONTAINER_IP_RANGE }}"
+
+         - name: Create containers for managed hosts
+           community.docker.docker_container:
+             name: "{{ item.name }}"
+             image: "{{ item.build_image }}"
+             networks:
+               - name: "{{ CONTAINER_NETWORK }}"
+                 ipv4_address: "{{ item.ipv4_address }}"
+             ports: "{{ item.ports | default(omit) }}"
+             hostname: "{{ item.hostname }}"
+             etc_hosts: >
+               {
+               {% set comma = joiner(",") %}
+               {% for h in CONTAINERS %}
+                {% if h.hostname != item.hostname %}
+                {{ comma() }}"{{h.hostname}}":"{{h.ipv4_address}}"
+                {% endif %}
+               {% endfor %}
+               }
+             mounts: "{{ item.mounts | default(omit) }}"
+           loop: "{{ CONTAINERS }}"
+           loop_control:
+             label: |
+               Staring Docker Container: {{ item.name }}
+               Image: {{ item.build_image }}:{{ item.tag }}
+               HostName: {{ item.hostname }}
+               Network: {{ CONTAINER_NETWORK }}
+               IP: {{ item.ipv4_address }}
+
+         - name: Removing Dockerfile
+           ansible.builtin.file:
+             name: Dockerfile 
+             state: absent
+
+         - name: Creating static inventory file from listed containers
+           ansible.builtin.template:
+             src: inventory.j2
+             dest: demo/controller/inventory/demo.yml           
+
+         - name: Message 
+           ansible.builtin.debug:
+             msg: "{{ notice.split('\n') }}"
+
+           vars: 
+             notice: |
+               Log into your cluster using the following command:
+               ssh -p 2222 ansible@localhost
+               PASSWORD: {{ CONTAINER_SSH_PASSWORD }}
+
+ - name: |
+     Ansible User Training Environment: Create Environment with Podman
+   hosts: all
+   tags: podman
+
+   vars_files:
+     - vars/containers.yml
+
+   tasks:
+
+         - name: Running Podman build tasks
+           ansible.builtin.include_tasks: setup/tasks/build_podman.yml
+           loop: "{{ CONTAINERS }}"
+           loop_control:
+             loop_var: container
+             label: |
+               Building Podman Image: {{ container.name }}
+               Image: {{ container.base_image }}:{{ container.tag }}
+               Build: {{ container.build_image }}
+
+         - name: Create the Podman Network
+           containers.podman.podman_network:
+             name: "{{ CONTAINER_NETWORK }}"
+             internal: true 
+             subnet: "{{ CONTAINER_SUBNET }}"
+             gateway: "{{ CONTAINER_GATEWAY }}"
+             ip_range: "{{ CONTAINER_IP_RANGE }}"
+
+         - name: Create containers for managed hosts
+           containers.podman.podman_container:
+             name: "{{ item.name }}"
+             image: "{{ item.base_image }}"
+             network: "{{ CONTAINER_NETWORK }}"
+             ip: "{{ item.ipv4_address }}"
+             ports: "{{ item.ports | default(omit) }}"
+             hostname: "{{ item.hostname }}"
+             etc_hosts: >
+               {
+               {% set comma = joiner(",") %}
+               {% for h in CONTAINERS %}
+                {% if h.hostname != item.hostname %}
+                {{ comma() }}"{{h.hostname}}":"{{h.ipv4_address}}"
+                {% endif %}
+               {% endfor %}
+               }
+             mounts: "{{ item.podman_mounts | list }}"
+  
+           loop: "{{ CONTAINERS }}"
+           loop_control:
+             label: |
+               Staring Podman Container: {{ item.name }}
+               Image: {{ item.base_image }}:{{ item.tag }}
+               HostName: {{ item.hostname }}
+               Network: {{ CONTAINER_NETWORK }}
+               IP: {{ item.ipv4_address }}
+
+         - name: Removing Containerfile
+           ansible.builtin.file:
+             name: Containerfile
+             state: absent
+
+         - name: Message 
+           ansible.builtin.debug:
+             msg: "{{ message.split('\n') }}"
+           vars:
+             message: >
+               Log in:
+               ssh -o StrictHostKeyChecking=no -p 2222 ansible@localhost
+               PASSWORD: {{ CONTAINER_SSH_PASSWORD }}
+
+
+ - name: Shutdown Ansible User Training Environment
+   hosts: all
+   gather_facts: true
+   tags:
+     - never  
+     - shutdown
+
+ - name: Teardown Ansible User Training Environment
+   hosts: localhost
+   gather_facts: true
+   tags: 
+     - never
+     - teardown
+
+   vars_files:
+     - vars/containers.yml
+
+   tasks:
+
+     - name: Running teardown for Docker
+       block:
+
+         - name: Stopping containers
+           community.docker.docker_container:
+             name: "{{ item.name  }}"
+             state: stopped
+           loop: "{{ CONTAINERS }}"
+           loop_control:
+             label: "Removing base image: {{ item.base_image }}"
+
+         - name: Removing Containers
+           community.docker.docker_container:
+             name: "{{ item.name  }}"
+             state: absent
+           loop: "{{ CONTAINERS }}"
+           loop_control:
+             label: "Removing base image: {{ item.base_image }}"
+
+         - name: Removing network {{ CONTAINER_NETWORK }}
+           community.docker.docker_network:
+             name: "{{ CONTAINER_NETWORK }}"
+             state: absent
+
+         - name: Cleaning up base images
+           community.docker.docker_image:
+             name: "{{ item.base_image  }}"
+             state: absent
+           loop: "{{ CONTAINERS }}"
+           loop_control:
+             label: "Removing base image: {{ item.base_image }}"
+
+         - name: Removing container_files directory
+           ansible.builtin.file:
+             path: demo/container_files
+             state: absent
+
+
+    #- name: Running teardown for Podman  
+    #  tags:
+    #    - never
+    #    - podman

@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include exa_mods role"
+      ansible.builtin.include_role:
+        name: "exa_mods"
+      tags:
+        - molecule
+        - always

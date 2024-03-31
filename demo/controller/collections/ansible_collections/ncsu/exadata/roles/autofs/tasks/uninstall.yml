@@ -1,0 +1,48 @@
+---
+
+ - name: Stopping and disabling autofs service
+   ansible.builtin.service:
+     name: autofs
+     state: stopped
+     enabled: false
+   tags:
+     - always 
+     - molecule
+
+ - name: Removing configuration files
+   ansible.builtin.file:
+     path: "{% if item.master_dir is defined && item.master_dir %}/etc/auto.master.d/auto.{{item.file}}{% else %}/etc/auto.{{item.file}}{% endif %}"
+     state: absent
+   loop: "{{ autofs_maps| default(__autofs_maps) }}"
+   tags:
+     - always 
+     - molecule
+
+ - name: Uninstall autofs
+   ansible.builtin.package:
+     name: autofs
+     state: absent
+   tags:
+     - always 
+     - molecule
+
+ - name: Uninstall package dependencies for autofs based on OS
+   ansible.builtin.package:
+     name: "{{ autofs_requirements }}"
+     state: present
+   when: autofs_requirements | length > 0
+   tags:
+     - always 
+     - molecule
+
+ - name: Creating hard mount(s) for autofs
+   ansible.builtin.file:
+     path: "{{ autofs_mount_point | default(omit) }}"
+     state: absent
+   loop_control:
+     loop_var: autofs_mount_point
+     lable: "Removing hard mount: {{ autofs_mount_point }}."
+   loop: "{{ autofs_mounts }}"
+   tags:
+     - always
+     - molecule

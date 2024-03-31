@@ -1,0 +1,32 @@
+{
+ "collection_info": {
+  "namespace": "ncsu",
+  "name": "exadata",
+  "version": "1.0.0",
+  "authors": [
+   "David Lewellyn <dlewell@ncsu.edu>",
+   "Shaun Sundquist <sjsundqu@ncsu.edu>",
+   "Don Waterman <dcwaterm@ncsu.edu>"
+  ],
+  "readme": "README.md",
+  "tags": [],
+  "description": "The ExaData collection houses roles,plugins, and playbooks used for the deployment and code maintenance of the ExaData servers.",
+  "license": [
+   "GPL-2.0-or-later"
+  ],
+  "license_file": null,
+  "dependencies": {},
+  "repository": "https://github.ncsu.edu/Ansible-Automation/ncsu.exadata",
+  "documentation": "https://github.ncsu.edu/Ansible-Automation/ncsu.exadata/tree/main/doc",
+  "homepage": "https://github.ncsu.edu/Ansible-Automation/ncsu.exadata",
+  "issues": "https://github.ncsu.edu/Ansible-Automation/ncsu.exadata/issues"
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "e85a589e00c472f265480c030c1dd5a4fe0fbcd07b73737954f9562a0a233dc9",
+  "format": 1
+ },
+ "format": 1
+}

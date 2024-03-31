@@ -1,0 +1,22 @@
+---
+
+  - name: Create host directory in {{ playbook_dir }}/demo/container_files/ 
+    ansible.builtin.file:
+      path: "{{ playbook_dir }}/demo/container_files/{{ container.name }}"
+      state: directory
+
+  - name: Creating Image Dockerfile for {{ container.build_image }}
+    ansible.builtin.template:
+      src: "{{ playbook_dir }}/templates/build_template.j2"
+      dest: "{{ playbook_dir }}/demo/container_files/{{ container.name }}/Dockerfile"
+
+  - name: Building Image {{ container.build_image }} from Dockerfile
+    community.docker.docker_image:
+      build: 
+        path: "{{ playbook_dir }}"
+        dockerfile: "{{ playbook_dir }}/demo/container_files/{{ container.name }}/Dockerfile"
+        pull: true
+      name: "{{ container.build_image }}"
+      source: build
+      state: present
+

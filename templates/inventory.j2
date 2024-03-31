@@ -1,0 +1,7 @@
+---
+demo:
+  hosts:
+{% for container in CONTAINERS %}
+    {{container.hostname}}:
+      ansible_host: {{ container.ipv4_address }}
+{% endfor -%}

@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include autofs role"
+      include_role:
+        name: "autofs"
+      tags:
+        - molecule

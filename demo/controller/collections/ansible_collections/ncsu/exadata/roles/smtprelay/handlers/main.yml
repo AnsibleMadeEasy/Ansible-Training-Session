@@ -1,0 +1,12 @@
+---
+# handlers file for smtprelay
+## mail playbook/handlers
+- name: "restart sendmail"
+  ansible.builtin.systemd:
+    name: sendmail
+    state: restarted
+  become: true
+  tags:
+    - always
+    - no_molecule
+  # ignore_errors: yes # work around for molecule + systemd Docker images

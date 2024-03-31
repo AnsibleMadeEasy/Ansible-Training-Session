@@ -1,0 +1,23 @@
+---
+dependency:
+  name: galaxy
+  options:
+    ignore-certs: true
+    ignore-errors: true
+driver:
+  name: docker
+platforms:
+  - name: Ubuntu
+    image: geerlingguy/docker-centos8-ansible:latest
+    pre_build_image: true
+    docker_host: "${DOCKER_HOST:-unix://var/run/docker.sock}"
+    privileged: true
+    command: ${MOLECULE_DOCKER_COMMAND:-"/usr/lib/systemd/systemd"}
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    groups:
+      - python3
+provisioner:
+  name: ansible
+verifier:
+  name: ansible

@@ -1,0 +1,166 @@
+## access playbook/tasks
+---
+## config test: compares configs in repo with deployed
+# with ansible, it can copy our configs and create backups
+# then diffs can be compared. in the future, ansible could
+# compare and do something.
+# see group_vars/all.yml for these settings
+
+- name: Critical first steps
+  block:
+
+    - name: Create and add a local oit.ansible.dba.srv user
+      ansible.builtin.user:
+        name: oit.ansible.dba.srv
+        uid: 528
+        group: 4
+        password: "{{ exadata_become }}"
+        update_password: on_create
+        local: yes
+      tags:
+        - molecule
+        - always
+
+    - name: Copy over ncsu_sudoers config
+      ansible.builtin.template:
+        src: templates/ncsu_sudoers.j2
+        dest: /etc/sudoers.d/ncsu_sudoers
+        mode: 0640
+        owner: root
+        group: root
+      tags:
+        - molecule
+        - always
+
+## create symlink /u
+- name: Create /u symlink
+  ansible.builtin.file:
+    src: /Remote/AdminUnixHome
+    dest: /u
+    owner: root
+    group: root
+    state: link
+    force: true
+  become: true
+  tags:
+    - molecule
+    - always
+
+- name: Get root user info
+  ansible.builtin.getent:
+    database: group
+    service: ldap
+    key: exadata
+  tags:
+    - no_molecule
+    - always
+
+- ansible.builtin.debug:
+    var: ansible_facts.getent_group
+  tags:
+    - no_molecule
+    - always
+
+- name: Show exadata group users
+  debug:
+    msg: "{{ ansible_facts.getent_group['exadata'][2].split(',') }}"
+  tags:
+    - no_molecule
+    - always
+
+- name: Add users from ldap group exadata to wheel group
+  ansible.builtin.user:
+    name: '{{ item }}'
+    groups: wheel
+    append: true
+  when:
+    - item != 'ora_cmdb_svc'
+  with_items: "{{ ansible_facts.getent_group['exadata'][2].split(',') }}"
+  tags:
+    - no_molecule
+    - always
+
+- name: Create and add a local DBA group
+  ansible.builtin.group:
+    name: dba
+    gid: 333
+    local: yes
+    state: present
+  tags:
+    - molecule
+    - always
+
+- name: Create and add a local OINSTALL group
+  ansible.builtin.group:
+    name: oinstall
+    gid: 334
+    local: yes
+    state: present
+  tags:
+    - molecule
+    - always
+
+- name: Create and add a local ORAROM user, add to wheel
+  ansible.builtin.user:
+    name: orarom
+    uid: 12140
+    group: oinstall
+    groups: wheel, dba, oinstall
+    append: true
+  tags:
+    - molecule
+    - always
+
+- name: Create and add a local ORADBA user
+  ansible.builtin.user:
+    name: oradba
+    uid: 347
+    group: oinstall
+    groups: dba, oinstall
+    append: true
+  tags:
+    - molecule
+    - always
+
+- name: Add DB admins to wheel group
+  ansible.builtin.user:
+    name: '{{ item }}'
+    groups: wheel
+    append: true
+  with_items: '{{ dba_admins }}'
+  tags:
+    - no_molecule
+    - always
+
+# add storage admin's to wheel
+- name: Add storage admins to wheel group
+  ansible.builtin.user:
+    name: '{{ item }}'
+    groups: wheel
+    append: true
+  with_items: '{{ storage_admins }}'
+  tags:
+    - no_molecule
+    - always
+
+# add sysprog to wheel
+- name: Add CSI admins to wheel group
+  ansible.builtin.user:
+    name: '{{ item }}'
+    groups: wheel
+    append: true
+  with_items: '{{ CSI_admins }}'
+  tags:
+    - no_molecule
+    - always
+
+- name: Copy over ncsu_cmdb config
+  ansible.builtin.template:
+    src: templates/ncsu_cmdb.j2
+    dest: /etc/sudoers.d/ncsu_cmdb
+    mode: 0640
+    owner: root
+    group: root
+  tags:
+    - molecule
+    - always

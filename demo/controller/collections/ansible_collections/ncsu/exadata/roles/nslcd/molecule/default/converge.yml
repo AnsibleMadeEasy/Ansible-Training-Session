@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include nslcd role"
+      ansible.builtin.include_role:
+        name: "nslcd"
+      tags:
+        - molecule
+        - always
