@@ -1,4 +1,0 @@
-sshd : ALL
-snmpd : ALL
-ALL : localhost
-ALL : 10.48.4.0/255.255.255.0

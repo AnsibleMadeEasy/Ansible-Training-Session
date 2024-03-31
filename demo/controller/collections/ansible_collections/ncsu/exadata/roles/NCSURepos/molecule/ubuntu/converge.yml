@@ -1,7 +1,0 @@
----
-- name: Converge
-  hosts: all
-  tasks:
-    - name: "Include NCSURepos"
-      include_role:
-        name: "NCSURepos"

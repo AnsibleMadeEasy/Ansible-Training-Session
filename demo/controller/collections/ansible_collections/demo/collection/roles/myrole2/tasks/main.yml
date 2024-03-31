@@ -1,6 +1,0 @@
----
-# tasks file for myrole2
-#
- - name: Debug from myrole2
-   ansible.builtin.debug:
-     msg: "{{ myrole2_debug }}"

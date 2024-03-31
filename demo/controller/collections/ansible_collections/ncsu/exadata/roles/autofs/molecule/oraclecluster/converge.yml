@@ -1,8 +1,0 @@
----
-- name: Converge
-  hosts: all
-  ignore_errors: true
-  tasks:
-    - name: "Include autofs role"
-      include_role:
-        name: "autofs"

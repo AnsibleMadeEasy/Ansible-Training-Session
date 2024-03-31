@@ -1,4 +1,0 @@
-#  /Remote/psdata home(s)
-#   o  psdata home mount points 
-#   o  curretnly advance is the only psdata home permitted on exadata 
-advance -ro,intr,bg,soft,vers=3,retry=5,retrans=8 dc2isi00erp.oit.ncsu.edu:/psdata_erp/advance

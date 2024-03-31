@@ -1,5 +1,0 @@
----
-
-collections:
-  - name: https://github.ncsu.edu/Ansible-Automation/ncsu.exadata.git
-    type: git
